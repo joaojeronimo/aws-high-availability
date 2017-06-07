@@ -1,0 +1,236 @@
+<!doctype html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+		<title>reveal.js</title>
+
+		<link rel="stylesheet" href="css/reveal.css">
+		<link rel="stylesheet" href="css/theme/blood.css">
+
+		<!-- Theme used for syntax highlighting of code -->
+		<link rel="stylesheet" href="lib/css/zenburn.css">
+
+		<!-- Printing and PDF exports -->
+		<script>
+			var link = document.createElement( 'link' );
+			link.rel = 'stylesheet';
+			link.type = 'text/css';
+			link.href = window.location.search.match( /print-pdf/gi ) ? 'css/print/pdf.css' : 'css/print/paper.css';
+			document.getElementsByTagName( 'head' )[0].appendChild( link );
+		</script>
+	</head>
+	<body>
+		<div class="reveal">
+			<div class="slides">
+        <section>
+          <section>
+            <h1>The node app that won't go down</h1>
+          </section>
+          <section>
+            <p>Except, surprise surprise, it's 2013, so</p>
+            <p style="text-decoration:line-through;color:red">node.js</p>
+            <p style="color:green">docker container!</p>
+          </section>
+          <section>Anyhow, let's minimise the likelyhood of your service/app/website being down</section>
+          <section>
+            This presentation assumes AWS because it
+            <span style="text-decoration:line-through;">seems to be the most common..?</span>
+            it's the one I worked with
+          </section>
+        </section>
+        <section>
+          <section>
+            <h2>Main idea</h2>
+            Find out SLA of the AWS services you rely on, and add redundancy to minimise
+            the risk of downtime where it will give you the impact.
+            <h2> Optimise for $cost/%downtime</h2>
+          </section>
+        </section>
+        <section>
+          <section>
+            <h2>This we won't cover</h2>
+            Deployment and build pipeline resiliency.
+          </section>
+        </section>
+        <section>
+          <section>
+            <h2>So in a nutshell, how to you get node on AWS ?</h2>
+          </section>
+          <section>
+            spin ubuntu, ssh into it, git clone, nohup npm start
+            <img src="https://media.giphy.com/media/3o7qDEq2bMbcbPRQ2c/giphy.gif" />
+          </section>
+          <section>
+            <img src="https://media.giphy.com/media/isP4TLqhjm3zq/giphy.gif" />
+          </section>
+          <section>
+            <h1>ECS</h1>
+            <img height="400px" src="https://www.msolution.io/wp-content/uploads/2016/11/ecs_docker.png" />
+            <br />
+            <small>explain why</small>
+          </section>
+          <section>
+            <h2>How should we run ECS ?</h2>
+          </section>
+          <section>
+            why should I tell you...
+          </section>
+          <section>
+            Reference architecture!
+            <br/>
+            github.com/awslabs/ecs-refarch-cloudformation
+          </section>
+          <section>
+            <img src="https://github.com/awslabs/ecs-refarch-cloudformation/raw/master/images/architecture-overview.png" />
+          </section>
+          <section>
+            <h2>What can go wrong ?</h2>
+          </section>
+          <section>
+            EC2 Instances
+            <h1>99.95%</h1>
+            <small>AWS will use commercially reasonable efforts to make Amazon EC2 and Amazon EBS each available with a Monthly Uptime Percentage of at least 99.95% [<a href="https://aws.amazon.com/ec2/sla/">1</a>]</small>
+            AutoScaling group helps
+          </section>
+          <section>
+            Application Load Balancer ?
+            <h3>let's hope not</h3>
+            <small>It's a managed service by AWS, that shouldn't fail, however they don't say anything about SLAs or if we should expect this to fail...... weird</small>
+          </section>
+          <section>
+            NAT Gateway ?
+            <h1>nope</h1>
+            "Highly available. NAT gateways in each Availability Zone are implemented with redundancy. Create a NAT gateway in each Availability Zone to ensure zone-independent architecture." [<a href="http://docs.aws.amazon.com/AmazonVPC/latest/UserGuide/vpc-nat-comparison.html">1</a>]
+          </section>
+          <section>
+            Internet Gateway ?
+            <h1>nope</h1>
+            "Internet gateway is horizontally scaled, redundant, and highly available. It therefore imposes no availability risks or bandwidth constraints on your network traffic." [<a href="http://docs.aws.amazon.com/AmazonVPC/latest/UserGuide/VPC_Internet_Gateway.html">1</a>]
+          </section>
+          <section>
+            A whole AZ ?
+            <h1>maybe...</h1>
+            That's why we have multiple AZs. But how often does it happen ?
+          </section>
+          <section>
+            A whole region ?
+            <h1>maybe...</h1>
+            That's why we have multiple regions. But how often does it happen ?
+          </section>
+          <section>
+            A managed service ?
+            <h1>maybe...</h1>
+            Remember the S3 outage earlier this year ?
+          </section>
+        </section>
+        <section>
+          <section>
+            So how likely is our application to be down ?
+          </section>
+          <section>
+            <h1>P(A and B) = P(A) * P(B|A)</h1>
+            <small>but generalise it to the number of EC2 instances you have</small>
+          </section>
+          <section>
+            All 4 EC2 instances being down ?
+
+            <h1>6.25000e-14</h1>
+          </section>
+        </section>
+        <section>
+          <section>
+            Want to be really paranoid ? Do you lose more money per 12 hours of downtime than
+            the cost of running your app in 2 AZs ?
+          </section>
+          <section>
+            <h1>Some ideas</h1>
+          </section>
+          <section>
+            <h3>Go multi region</h3>
+            Run the same reference stack in a different region.
+          </section>
+          <section>
+            <h3>Go multi provider</h3>
+            <ol>
+              <li>Switch to Kubernetes or Docker Swarm</li>
+              <li>Profit</li>
+              <li>Make sure your non managed load balancers and orchestrators are not SPOFs</li>
+            </ol>
+          </section>
+        </section>
+        <section>
+          <section>
+            <h2>Tip #1</h2>
+            Think about the cost
+          </section>
+          <section>
+            Don't make your personal blog multi-region if you don't have to.
+
+            Unless you're doing it for fun.
+          </section>
+          <section>
+            Remember the eu-east-1 S3 failure that took down many things among them Docker Hub ?
+          </section>
+          <section>
+            S3 is not supposed to fail (lol), but they could very easily have been multi region.
+
+            (pic of the AWS console multi-region setting)
+          </section>
+          <section>
+            But docker hub is a free service (the paid version didn't go down) and why would they pay
+            twice the hosting cost to not be down for 8 hours in 3 years ?
+          </section>
+        </section>
+        <section>
+          <section>
+            <h2>Tip #2</h2>
+            break it
+          </section>
+          <section>
+            <h3>Many monkeys</h3>
+            Chaos Monkey - Latency Monkey - Conformity Monkey - Doctor Monkey - Janitor Monkey - Security Monkey - 10–18 Monkey - Chaos Gorilla
+          </section>
+          <section>
+            Chaos Monkey shuts down instances, Chaos Gorilla shuts down whole AZs
+          </section>
+          <section>
+            Pro Tip: Do it in a separate AWS account
+          </section>
+        </section>
+        <section>
+          <section>
+            <h2>Tip #3</h2>
+            use more "managed" things, offload HA concerns to AWS
+          </section>
+          <section>
+            where you can,
+            <h1>go serverless</h1>
+            because API Gateway and Lambdas will be managed, replicated and highly available out of the box :)
+          </section>
+        </section>
+        <section>
+          <img src="https://media.giphy.com/media/lD76yTC5zxZPG/giphy.gif" />
+        </section>
+			</div>
+		</div>
+
+		<script src="lib/js/head.min.js"></script>
+		<script src="js/reveal.js"></script>
+
+		<script>
+			// More info about config & dependencies:
+			// - https://github.com/hakimel/reveal.js#configuration
+			// - https://github.com/hakimel/reveal.js#dependencies
+			Reveal.initialize({
+				dependencies: [
+					{ src: 'plugin/markdown/marked.js' },
+					{ src: 'plugin/markdown/markdown.js' },
+					{ src: 'plugin/notes/notes.js', async: true },
+					{ src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } }
+				]
+			});
+		</script>
+	</body>
+</html>
