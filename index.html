@@ -60,7 +60,7 @@
             <ul>
               <li>Region (e.g. us-east-1 , eu-west-1)</li>
               <li>Availability Zone (e.g. eu-west-1a, eu-west-1b)</li>
-              <li>Managed service</li>
+              <li>Managed region-replicated services</li>
             </ul>
             <img src="http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/images/aws_regions.png" />
           </section>
@@ -80,7 +80,7 @@
             <h1>ECS</h1>
             <img height="400px" src="https://www.msolution.io/wp-content/uploads/2016/11/ecs_docker.png" />
             <br />
-            <small>explain why</small>
+            <small>why ?</small>
           </section>
           <section>
             <h2>How should we run ECS ?</h2>
@@ -102,13 +102,19 @@
           <section>
             EC2 Instances
             <h1>99.95%</h1>
+
             <small>AWS will use commercially reasonable efforts to make Amazon EC2 and Amazon EBS each available with a Monthly Uptime Percentage of at least 99.95% [<a href="https://aws.amazon.com/ec2/sla/">1</a>]</small>
+            <br />
+            <small>0.36 hours every month</small>
+            <br />
+            <small>where does that number come from ?</small>
+            <br />
             AutoScaling group helps
           </section>
           <section>
             Application Load Balancer ?
             <h3>let's hope not</h3>
-            <small>It's a managed service by AWS, that shouldn't fail, however they don't say anything about SLAs or if we should expect this to fail...... weird</small>
+            <small>It's managed service by AWS, that shouldn't fail, however they do not have any exact reference saying it is AZ replicated and highly available</small>
           </section>
           <section>
             NAT Gateway ?
@@ -148,6 +154,8 @@
             All 4 EC2 instances being down ?
 
             <h1>6.25000e-14</h1>
+
+            <small>assuming the probability of an instance being down is 0.0005%</small>
           </section>
         </section>
         <section>
@@ -219,6 +227,28 @@
             where you can,
             <h1>go serverless</h1>
             because API Gateway and Lambdas will be managed, replicated and highly available out of the box :)
+          </section>
+        </section>
+        <section>
+          <section>
+            <h1>reference stack ++</h1>
+          </section>
+          <section>
+            github.com/joaojeronimo/paranoid-ha-ecs
+          </section>
+          <section>
+            helps you create, update and delete stacks in all regions
+          </section>
+          <section>
+            But how do you send traffic to all those ALBs ?
+          </section>
+          <section>
+            no idea
+          </section>
+          <section>
+            But I think <a href="https://ns1.com/">NS1</a> has a product for that
+            <br />
+            (<a href="https://ns1.com/solutions/technical-solutions/anycasted-network">anycasted network</a> plus one of the DNS traffic management things)
           </section>
         </section>
         <section>
